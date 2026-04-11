@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Facebook, Twitter, Phone, Mail } from 'lucide-react';
+import { Phone, Mail } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -52,10 +52,10 @@ const Footer = () => {
             <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Phone size={16} /> +250792876203 (Whatsapp)</li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Mail size={16} /> christellahumurerwa5@gmail.com</li>
           </ul>
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <a href="#" style={{ color: '#fff' }}><Instagram size={20} /></a>
-            <a href="#" style={{ color: '#fff' }}><Facebook size={20} /></a>
-            <a href="#" style={{ color: '#fff' }}><Twitter size={20} /></a>
+          <div style={{ display: 'flex', gap: '1.5rem', fontWeight: 600, fontSize: '0.85rem' }}>
+            <a href="#" style={{ color: '#fff' }}>IG</a>
+            <a href="#" style={{ color: '#fff' }}>FB</a>
+            <a href="#" style={{ color: '#fff' }}>X (Twitter)</a>
           </div>
         </div>
       </div>
