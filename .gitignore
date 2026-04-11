@@ -1,0 +1,10 @@
+node_modules
+dist
+.firebase
+.DS_Store
+*.local
+.env
+Public-site/node_modules
+Admin-site/node_modules
+Public-site/dist
+Admin-site/dist

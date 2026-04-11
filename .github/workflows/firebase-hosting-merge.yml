@@ -1,0 +1,33 @@
+name: Deploy to Firebase Hosting on merge
+'on':
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Root Dependencies
+        run: npm install
+        
+      - name: Install Public-site Dependencies
+        run: cd Public-site && npm install
+        
+      - name: Install Admin-site Dependencies
+        run: cd Admin-site && npm install
+        
+      - name: Build Both Sites
+        run: |
+          npm run build:public
+          npm run build:admin
+          mkdir -p Public-site/dist/admin
+          cp -r Admin-site/dist/* Public-site/dist/admin/
+          
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ZURICARTSHOP }}'
+          channelId: live
+          projectId: zuricartshop
