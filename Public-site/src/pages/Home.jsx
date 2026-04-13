@@ -30,36 +30,36 @@ const Home = () => {
           gap: '2rem'
         }}>
           {categories.map((cat, index) => (
-            <motion.div 
-              key={index}
-              whileHover={{ y: -10 }}
-              style={{
-                position: 'relative',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                aspectRatio: '4/5',
-                cursor: 'pointer'
-              }}
-            >
-              <img 
-                src={cat.image} 
-                alt={cat.name} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent 60%)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                padding: '2rem',
-                color: '#fff'
-              }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>{cat.name}</h3>
-                <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>{cat.items}</p>
-              </div>
-            </motion.div>
+            <Link key={index} to={`/catalog?category=${cat.name}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <motion.div 
+                whileHover={{ y: -10 }}
+                style={{
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  aspectRatio: '4/5',
+                }}
+              >
+                <img 
+                  src={cat.image} 
+                  alt={cat.name} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent 60%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  padding: '2rem',
+                  color: '#fff'
+                }}>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>{cat.name}</h3>
+                  <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>{cat.items}</p>
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       </section>

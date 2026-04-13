@@ -17,9 +17,9 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
-      <div className="logo">
-        <div style={{ background: '#000', color: '#fff', padding: '6px', borderRadius: '8px' }}>ZC</div>
-        ZURI ADMIN
+      <div className="logo" style={{ marginBottom: '1rem' }}>
+        <img src="/images/brand-mark.png" alt="Z" style={{ height: '32px', width: '32px', objectFit: 'contain' }} onError={(e) => e.target.style.display='none'} />
+        <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>ZURI ADMIN</span>
       </div>
       
       <nav className="nav-links">

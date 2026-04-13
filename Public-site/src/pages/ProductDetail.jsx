@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { ChevronLeft, ShoppingCart, ShieldCheck, Truck } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, ShieldCheck, Truck, Check } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -66,8 +70,17 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <button className="premium-btn" style={{ padding: '20px', width: '100%', justifyContent: 'center' }}>
-          <ShoppingCart size={20} /> Add to Cart
+        <button 
+          onClick={() => {
+            addToCart(product);
+            setAdded(true);
+            setTimeout(() => setAdded(false), 2000);
+          }}
+          className="premium-btn" 
+          style={{ padding: '20px', width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '10px' }}
+        >
+          {added ? <Check size={20} /> : <ShoppingCart size={20} />}
+          {added ? 'Added to Cart!' : 'Add to Cart'}
         </button>
 
         <div style={{ borderTop: '1px solid #eee', paddingTop: '2rem', marginTop: '1rem', display: 'flex', gap: '3rem' }}>

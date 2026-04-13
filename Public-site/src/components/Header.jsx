@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -10,9 +11,11 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [navLinks, setNavLinks] = useState([
     { label: 'Home', url: '/' },
-    { label: 'All Categories', url: '/catalog' },
+    { label: 'All Categories', url: '/categories' },
   ]);
+  const [logoUrl, setLogoUrl] = useState('');
   const { currentUser, logout } = useAuth();
+  const { cartCount } = useCart();
   const navigate = useNavigate();
 
   // Load custom nav links from Firestore settings
@@ -22,6 +25,7 @@ const Header = () => {
         const snap = await getDoc(doc(db, 'siteSettings', 'config'));
         if (snap.exists() && snap.data().navLinks) {
           setNavLinks(snap.data().navLinks);
+          if (snap.data().logoUrl) setLogoUrl(snap.data().logoUrl);
         }
       } catch (err) {
         // Silently fall back to defaults
@@ -47,8 +51,11 @@ const Header = () => {
       alignItems: 'center',
       justifyContent: 'space-between'
     }}>
-      <Link to="/" style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-1.5px' }}>
-        ZURI <span style={{ color: '#666' }}>CART</span>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+        {logoUrl
+          ? <img src={logoUrl} alt="ZURI CART" style={{ height: '40px', objectFit: 'contain' }} />
+          : <span style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-1.5px', color: '#000' }}>ZURI <span style={{ color: '#666' }}>CART</span></span>
+        }
       </Link>
 
       <form onSubmit={handleSearch} style={{ flex: 1, margin: '0 3rem', maxWidth: '600px', position: 'relative' }}>
@@ -94,17 +101,19 @@ const Header = () => {
         )}
         <Link to="/cart" style={{ position: 'relative' }}>
           <ShoppingCart size={22} />
-          <span style={{
-            position: 'absolute',
-            top: '-8px',
-            right: '-8px',
-            background: '#000',
-            color: '#fff',
-            fontSize: '0.7rem',
-            padding: '2px 6px',
-            borderRadius: '10px',
-            fontWeight: 700
-          }}>0</span>
+          {cartCount > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-8px',
+              right: '-8px',
+              background: '#000',
+              color: '#fff',
+              fontSize: '0.7rem',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontWeight: 700
+            }}>{cartCount}</span>
+          )}
         </Link>
         <div className="show-mobile" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           {isMenuOpen ? <X /> : <Menu />}

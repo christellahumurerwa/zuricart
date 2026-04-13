@@ -8,27 +8,31 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Auth from './pages/Auth';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import './index.css';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="app-container">
-          <Header />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/catalog" element={<Catalog />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/login" element={<Auth mode="login" />} />
-              <Route path="/signup" element={<Auth mode="signup" />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+      <CartProvider>
+        <Router>
+          <div className="app-container">
+            <Header />
+            <main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/catalog" element={<Catalog />} />
+                <Route path="/categories" element={<Catalog />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/login" element={<Auth mode="login" />} />
+                <Route path="/signup" element={<Auth mode="signup" />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

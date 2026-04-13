@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { Filter, X, ChevronDown, ShoppingBag } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Filter, X, ChevronDown, ShoppingBag, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useCart } from '../context/CartContext';
 
 const Catalog = () => {
   const location = useLocation();
@@ -14,6 +15,8 @@ const Catalog = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [addedIds, setAddedIds] = useState({});
+  const { addToCart } = useCart();
   
   // States for filters
   const [search, setSearch] = useState(initialSearch);
@@ -185,17 +188,28 @@ const Catalog = () => {
               >
                 <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden', display: 'block' }}>
                   <img src={product.image} alt={product.name} className="product-image" />
-                  <div style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    background: '#fff',
-                    padding: '8px',
-                    borderRadius: '50%',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                    cursor: 'pointer'
-                  }}>
-                    <ShoppingBag size={18} />
+                  <div 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      addToCart(product);
+                      setAddedIds(prev => ({ ...prev, [product.id]: true }));
+                      setTimeout(() => setAddedIds(prev => ({ ...prev, [product.id]: false })), 2000);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      background: addedIds[product.id] ? '#000' : '#fff',
+                      color: addedIds[product.id] ? '#fff' : '#000',
+                      padding: '8px',
+                      borderRadius: '50%',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >
+                    {addedIds[product.id] ? <Check size={18} /> : <ShoppingBag size={18} />}
                   </div>
                 </Link>
                 <div className="product-info">

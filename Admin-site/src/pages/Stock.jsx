@@ -163,8 +163,8 @@ const Stock = () => {
 
       {/* Add / Edit Product Modal */}
       {isModalOpen && (
-        <div className="overlay" style={{ display: 'flex', zIndex: 1000 }}>
-          <div className="data-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', position: 'relative' }}>
+        <div className="overlay">
+          <div className="modal-form-card" style={{ padding: '2rem' }}>
             <button 
               onClick={() => setIsModalOpen(false)} 
               style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
