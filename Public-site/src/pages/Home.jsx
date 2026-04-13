@@ -1,6 +1,7 @@
 import React from 'react';
 import Hero from '../components/Hero';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const categories = [
@@ -20,7 +21,7 @@ const Home = () => {
             <span style={{ textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '2px', color: '#999' }}>Shop by</span>
             <h2 className="section-title" style={{ margin: 0 }}>CATEGORIES</h2>
           </div>
-          <button className="premium-btn secondary">View All</button>
+          <Link to="/catalog" className="premium-btn secondary" style={{ textDecoration: 'none' }}>View All</Link>
         </div>
 
         <div style={{

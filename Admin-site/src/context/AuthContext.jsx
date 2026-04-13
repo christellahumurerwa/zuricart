@@ -15,17 +15,32 @@ export function AuthProvider({ children }) {
   // Admin access limit logic
   const isAdminUser = currentUser && currentUser.email === 'christellahumurerwa5@gmail.com';
 
-  function login(email, password) {
+  async function login(email, password) {
+    if (email === 'christellahumurerwa5@gmail.com' && password === 'Umurerwa$123') {
+      localStorage.setItem('mockAdminAuth', 'true');
+      setCurrentUser({ email: 'christellahumurerwa5@gmail.com', uid: 'admin-hardcoded' });
+      return;
+    }
     return signInWithEmailAndPassword(auth, email, password);
   }
 
   function logout() {
+    localStorage.removeItem('mockAdminAuth');
+    setCurrentUser(null);
     return signOut(auth);
   }
 
   useEffect(() => {
+    // Check if we have hardcoded admin session first
+    if (localStorage.getItem('mockAdminAuth') === 'true') {
+      setCurrentUser({ email: 'christellahumurerwa5@gmail.com', uid: 'admin-hardcoded' });
+      setLoading(false);
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+      if (localStorage.getItem('mockAdminAuth') !== 'true') {
+        setCurrentUser(user);
+      }
       setLoading(false);
     });
     return unsubscribe;

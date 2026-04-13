@@ -49,6 +49,9 @@ const Header = () => {
       </form>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        <Link to="/" style={{ fontWeight: 500, color: '#000', textDecoration: 'none' }} className="hide-mobile">
+          Home
+        </Link>
         {currentUser ? (
           <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, background: 'none', border: 'none', color: '#000', cursor: 'pointer' }}>
             <LogOut size={20} />
