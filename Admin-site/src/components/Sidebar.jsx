@@ -1,10 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, ShoppingCart, Package, Users, Settings, LogOut, CreditCard } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
+  const { logout } = useAuth();
+  
   const menuItems = [
-    { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
+    { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
     { name: 'Orders', icon: <ShoppingCart size={20} />, path: '/orders' },
     { name: 'Stock / Products', icon: <Package size={20} />, path: '/stock' },
     { name: 'Users', icon: <Users size={20} />, path: '/users' },
@@ -34,7 +37,7 @@ const Sidebar = () => {
       </nav>
 
       <div style={{ marginTop: 'auto' }}>
-        <button className="nav-link" style={{ width: '100%', border: 'none', background: 'none', cursor: 'pointer' }}>
+        <button onClick={() => logout()} className="nav-link" style={{ width: '100%', border: 'none', background: 'none', cursor: 'pointer' }}>
           <LogOut size={20} />
           Logout
         </button>

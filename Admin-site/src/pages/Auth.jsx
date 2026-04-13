@@ -18,7 +18,7 @@ const Auth = () => {
     setError('');
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError("Invalid admin credentials or network error.");
     }

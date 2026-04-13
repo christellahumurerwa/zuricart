@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter, AlertCircle, RefreshCw, X } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 
 const Stock = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
 
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ name: '', category: 'Clothes', price: '', image: '', stock: '' });
+
+  const openModal = (product = null) => {
+    if (product) {
+      setCurrentProduct(product.id);
+      setNewProduct({ name: product.name, category: product.category, price: product.price, image: product.image, stock: product.stock });
+    } else {
+      setCurrentProduct(null);
+      setNewProduct({ name: '', category: 'Clothes', price: '', image: '', stock: '' });
+    }
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -41,10 +53,10 @@ const Stock = () => {
     }
   };
 
-  const addProduct = async (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'products'), {
+      const productData = {
         name: newProduct.name,
         category: newProduct.category,
         price: parseFloat(newProduct.price),
@@ -55,11 +67,18 @@ const Stock = () => {
         ageYears: '0',
         weight: '1kg',
         color: 'Mixed'
-      });
-      setShowAddModal(false);
+      };
+
+      if (currentProduct) {
+        await updateDoc(doc(db, 'products', currentProduct), productData);
+      } else {
+        await addDoc(collection(db, 'products'), productData);
+      }
+
+      setIsModalOpen(false);
       setNewProduct({ name: '', category: 'Clothes', price: '', image: '', stock: '' });
     } catch (err) {
-      console.error("Failed to add product", err);
+      console.error("Failed to save product", err);
     }
   };
 
@@ -67,7 +86,7 @@ const Stock = () => {
     <div className="stock-page">
       <div className="page-header">
         <h1 className="page-title">Stock Management</h1>
-        <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
+        <button onClick={() => openModal()} className="btn btn-primary">
           <Plus size={18} /> Add New Product
         </button>
       </div>
@@ -124,7 +143,7 @@ const Stock = () => {
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn" style={{ padding: '6px' }} title="Edit"><Edit2 size={16} /></button>
+                    <button onClick={() => openModal(p)} className="btn" style={{ padding: '6px' }} title="Edit"><Edit2 size={16} /></button>
                     <button 
                       onClick={() => toggleStatus(p.id, p.status, p.stock)}
                       className="btn" 
@@ -142,12 +161,18 @@ const Stock = () => {
         </table>
       </div>
 
-      {/* Add Product Modal (Simple Mock) */}
-      {showAddModal && (
-        <div className="overlay" style={{ display: 'flex' }}>
-          <div className="data-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem' }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>Add New Product</h2>
-            <form onSubmit={addProduct}>
+      {/* Add / Edit Product Modal */}
+      {isModalOpen && (
+        <div className="overlay" style={{ display: 'flex', zIndex: 1000 }}>
+          <div className="data-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', position: 'relative' }}>
+            <button 
+              onClick={() => setIsModalOpen(false)} 
+              style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
+            >
+              <X size={24} />
+            </button>
+            <h2 style={{ marginBottom: '1.5rem' }}>{currentProduct ? 'Edit Product' : 'Add New Product'}</h2>
+            <form onSubmit={handleSaveProduct}>
               <div className="form-group">
                 <label>Product Name</label>
                 <input type="text" placeholder="Ex: Premium Romper" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
@@ -178,8 +203,8 @@ const Stock = () => {
                 <input type="number" required value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: e.target.value})} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Save Product</button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="btn" style={{ flex: 1, background: '#eee' }}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>{currentProduct ? 'Update Product' : 'Save Product'}</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn" style={{ flex: 1, background: '#eee' }}>Cancel</button>
               </div>
             </form>
           </div>

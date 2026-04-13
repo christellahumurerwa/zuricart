@@ -22,6 +22,7 @@ function App() {
     <AuthProvider>
       <Router basename="/admin">
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/*" element={
             <ProtectedRoute>
@@ -29,7 +30,7 @@ function App() {
                 <Sidebar />
                 <main className="main-content">
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/stock" element={<Stock />} />
                     <Route path="/users" element={<Users />} />
