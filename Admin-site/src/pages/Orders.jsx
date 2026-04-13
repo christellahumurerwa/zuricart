@@ -1,20 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, CheckCircle, XCircle, MoreVertical } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
 const Orders = () => {
   const [filter, setFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const mockOrders = [
-    { id: 'ORD-001', customer: 'John Doe', email: 'john@example.com', phone: '+250123456', total: 125.0, date: '2026-04-10', status: 'pending' },
-    { id: 'ORD-002', customer: 'Jane Smith', email: 'jane@example.com', phone: '+250789012', total: 45.0, date: '2026-04-11', status: 'completed' },
-    { id: 'ORD-003', customer: 'Bob Wilson', email: 'bob@example.com', phone: '+250345678', total: 85.0, date: '2026-04-09', status: 'declined' },
-    { id: 'ORD-004', customer: 'Alice Brown', email: 'alice@example.com', phone: '+250567890', total: 220.0, date: '2026-04-11', status: 'pending' },
-  ];
+  const [orders, setOrders] = useState([]);
 
-  const filteredOrders = mockOrders.filter(order => {
-    const matchesFilter = filter === 'All' || order.status === filter.toLowerCase();
-    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      const ordersData = [];
+      snapshot.forEach(doc => ordersData.push({ id: doc.id, ...doc.data() }));
+      // Sort by latest first
+      ordersData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setOrders(ordersData);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const updateStatus = async (orderId, newStatus) => {
+    try {
+      await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+    } catch (err) {
+      console.error("Error updating order:", err);
+    }
+  };
+
+  const filteredOrders = orders.filter(order => {
+    const matchesFilter = filter === 'All' || order.status.toLowerCase() === filter.toLowerCase();
+    const userEmail = order.userEmail || '';
+    const matchesSearch = userEmail.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           order.id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -64,23 +81,23 @@ const Orders = () => {
               <tr key={order.id}>
                 <td style={{ fontWeight: 600 }}>#{order.id}</td>
                 <td>
-                  <div style={{ fontWeight: 500 }}>{order.customer}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#999' }}>{order.email}</div>
+                  <div style={{ fontWeight: 500 }}>{order.userEmail}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#999' }}>{order.phone} | {order.location}</div>
                 </td>
                 <td style={{ fontWeight: 700 }}>${order.total.toFixed(2)}</td>
-                <td>{order.date}</td>
+                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td>
-                  <span className={`status-badge status-${order.status}`}>
+                  <span className={`status-badge status-${order.status.toLowerCase()}`}>
                     {order.status}
                   </span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button className="btn" style={{ padding: '6px', background: '#f5f5f5' }} title="View Details"><Eye size={16} /></button>
-                    {order.status === 'pending' && (
+                    {order.status.toLowerCase() === 'pending' && (
                       <>
-                        <button className="btn" style={{ padding: '6px', background: '#d4edda', color: '#155724' }} title="Mark Completed"><CheckCircle size={16} /></button>
-                        <button className="btn" style={{ padding: '6px', background: '#f8d7da', color: '#721c24' }} title="Decline"><XCircle size={16} /></button>
+                        <button onClick={() => updateStatus(order.id, 'Completed')} className="btn" style={{ padding: '6px', background: '#d4edda', color: '#155724' }} title="Mark Completed"><CheckCircle size={16} /></button>
+                        <button onClick={() => updateStatus(order.id, 'Declined')} className="btn" style={{ padding: '6px', background: '#f8d7da', color: '#721c24' }} title="Decline"><XCircle size={16} /></button>
                       </>
                     )}
                   </div>

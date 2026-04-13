@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -7,12 +9,18 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email === 'christellahumurerwa5@gmail.com' && password === 'Umurerwa$123') {
-      window.location.href = '/';
-    } else {
-      alert('Invalid admin credentials.');
+    setError('');
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch (err) {
+      setError("Invalid admin credentials or network error.");
     }
   };
 
@@ -42,6 +50,8 @@ const Auth = () => {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>ZURI ADMIN</h1>
           <p style={{ color: '#999', fontSize: '0.9rem' }}>Secure portal for shop managers</p>
         </div>
+
+        {error && <div style={{ background: '#f8d7da', color: '#721c24', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
 
         <form onSubmit={handleLogin}>
           <div className="form-group">

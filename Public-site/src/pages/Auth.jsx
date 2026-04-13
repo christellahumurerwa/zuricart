@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, Calendar, Smile } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Auth = ({ mode = 'login' }) => {
   const [currentMode, setCurrentMode] = useState(mode);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const { signup, login, loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -26,10 +31,38 @@ const Auth = ({ mode = 'login' }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Firebase auth logic will go here
+    setError('');
+    try {
+      if (currentMode === 'signup') {
+        if (formData.password !== formData.confirmPassword) {
+          return setError('Passwords do not match');
+        }
+        await signup(formData.email, formData.password, {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          gender: formData.gender,
+          birthday: formData.birthday
+        });
+        navigate('/');
+      } else {
+        await login(formData.email, formData.password);
+        navigate('/');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogle = async () => {
+    try {
+      setError('');
+      await loginWithGoogle();
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -106,6 +139,8 @@ const Auth = ({ mode = 'login' }) => {
               {currentMode === 'login' ? 'Sign Up' : 'Log In'}
             </span>
           </p>
+
+          {error && <div style={{ background: '#f8d7da', color: '#721c24', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
             {currentMode === 'signup' && (
@@ -184,6 +219,7 @@ const Auth = ({ mode = 'login' }) => {
 
             <button 
               type="button"
+              onClick={handleGoogle}
               className="premium-btn secondary" 
               style={{ width: '100%', padding: '15px', display: 'flex', justifyContent: 'center', gap: '10px' }}
             >

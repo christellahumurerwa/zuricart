@@ -1,30 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 
 const Stock = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const [products, setProducts] = useState([
-    { id: '1', name: 'Premium Baby Romper', category: 'Clothes', price: 25.0, stock: 45, status: 'available', image: '/images/hero1.png' },
-    { id: '2', name: 'Soft Leather Shoes', category: 'Shoes', price: 35.0, stock: 12, status: 'available', image: '/images/hero2.png' },
-    { id: '3', name: 'Wooden Organic Toy', category: 'Toys', price: 18.5, stock: 0, status: 'out of stock', image: '/images/hero3.png' },
-    { id: '4', name: 'Cotton Sleep Set', category: 'Clothes', price: 29.99, stock: 20, status: 'available', image: '/images/hero1.png' },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [newProduct, setNewProduct] = useState({ name: '', category: 'Clothes', price: '', image: '', stock: '' });
 
-  const toggleStatus = (id) => {
-    setProducts(products.map(p => {
-      if (p.id === id) {
-        const newStatus = p.status === 'available' ? 'out of stock' : 'available';
-        return { ...p, status: newStatus, stock: newStatus === 'out of stock' ? 0 : p.stock || 10 };
-      }
-      return p;
-    }));
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'products'), (snapshot) => {
+      const prods = [];
+      snapshot.forEach(doc => prods.push({ id: doc.id, ...doc.data() }));
+      setProducts(prods);
+    });
+    return () => unsub();
+  }, []);
+
+  const toggleStatus = async (id, currentStatus, currentStock) => {
+    try {
+      const newStatus = currentStatus === 'available' ? 'out of stock' : 'available';
+      await updateDoc(doc(db, 'products', id), { 
+        status: newStatus,
+        stock: newStatus === 'out of stock' ? 0 : currentStock || 10
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const deleteProduct = (id) => {
+  const deleteProduct = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter(p => p.id !== id));
+      try {
+        await deleteDoc(doc(db, 'products', id));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const addProduct = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, 'products'), {
+        name: newProduct.name,
+        category: newProduct.category,
+        price: parseFloat(newProduct.price),
+        image: newProduct.image || '/images/hero1.png',
+        stock: parseInt(newProduct.stock),
+        status: parseInt(newProduct.stock) > 0 ? 'available' : 'out of stock',
+        ageMonths: '0-12',
+        ageYears: '0',
+        weight: '1kg',
+        color: 'Mixed'
+      });
+      setShowAddModal(false);
+      setNewProduct({ name: '', category: 'Clothes', price: '', image: '', stock: '' });
+    } catch (err) {
+      console.error("Failed to add product", err);
     }
   };
 
@@ -91,7 +126,7 @@ const Stock = () => {
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button className="btn" style={{ padding: '6px' }} title="Edit"><Edit2 size={16} /></button>
                     <button 
-                      onClick={() => toggleStatus(p.id)}
+                      onClick={() => toggleStatus(p.id, p.status, p.stock)}
                       className="btn" 
                       style={{ padding: '6px', background: p.status === 'available' ? '#ffe8cc' : '#d4edda' }} 
                       title="Toggle Status"
@@ -112,32 +147,35 @@ const Stock = () => {
         <div className="overlay" style={{ display: 'flex' }}>
           <div className="data-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem' }}>
             <h2 style={{ marginBottom: '1.5rem' }}>Add New Product</h2>
-            <form onSubmit={(e) => { e.preventDefault(); setShowAddModal(false); }}>
+            <form onSubmit={addProduct}>
               <div className="form-group">
                 <label>Product Name</label>
-                <input type="text" placeholder="Ex: Premium Romper" required />
+                <input type="text" placeholder="Ex: Premium Romper" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label>Category</label>
-                  <select>
+                  <select value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
                     <option>Clothes</option>
                     <option>Shoes</option>
                     <option>Toys</option>
+                    <option>Pampers</option>
+                    <option>Equipment</option>
+                    <option>Suitcases</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label>Price ($)</label>
-                  <input type="number" step="0.01" />
+                  <input type="number" step="0.01" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
                 </div>
               </div>
               <div className="form-group">
                 <label>Direct Image Link</label>
-                <input type="url" placeholder="https://example.com/image.jpg" />
+                <input type="text" placeholder="/images/hero1.png or HTTPS URL" value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})} />
               </div>
               <div className="form-group">
                 <label>Initial Stock</label>
-                <input type="number" />
+                <input type="number" required value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: e.target.value})} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Save Product</button>

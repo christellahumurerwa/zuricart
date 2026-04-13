@@ -1,12 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { mockProducts } from '../data/mockProducts';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { ChevronLeft, ShoppingCart, ShieldCheck, Truck } from 'lucide-react';
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const product = mockProducts.find(p => p.id === id);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const docRef = doc(db, 'products', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProduct({ id: docSnap.id, ...docSnap.data() });
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (loading) return <div style={{ padding: '5rem', textAlign: 'center' }}>Loading product details...</div>;
   if (!product) return <div style={{ padding: '5rem', textAlign: 'center' }}>Product not found.</div>;
 
   return (

@@ -6,5 +6,8 @@
     "build:admin": "cd Admin-site && npm run build",
     "build": "npm run build:public && npm run build:admin && cmd /c \"rmdir /s /q Public-site\\dist\\admin || exit 0\" && cmd /c \"mkdir Public-site\\dist\\admin\" && cmd /c \"xcopy /e /i /y Admin-site\\dist Public-site\\dist\\admin\"",
     "deploy": "firebase deploy"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.8.0"
   }
 }

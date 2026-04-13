@@ -1,26 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Smartphone, CreditCard, Link as LinkIcon, DollarSign } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const Payments = () => {
-  const [channels, setChannels] = useState([
-    { id: '1', name: 'MTN MoMo', code: '*182*8*1*2054917#', owner: 'Christella', type: 'USSD' },
-    { id: '2', name: 'Direct Bank Transfer', code: 'BK: 0000 0000 0000 0000', owner: 'ZURI CART LTD', type: 'Bank' },
-  ]);
-
+  const [channels, setChannels] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentChannel, setCurrentChannel] = useState(null);
+  const [formData, setFormData] = useState({ name: '', code: '', owner: '', type: 'USSD' });
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'paymentChannels'), (snapshot) => {
+      const data = [];
+      snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+      setChannels(data);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    // Logic to save/update
-    setIsEditing(false);
+    try {
+      if (currentChannel) {
+        await updateDoc(doc(db, 'paymentChannels', currentChannel.id), formData);
+      } else {
+        await addDoc(collection(db, 'paymentChannels'), formData);
+      }
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure?")) {
+      try {
+        await deleteDoc(doc(db, 'paymentChannels', id));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const openEditor = (ch) => {
+    setCurrentChannel(ch);
+    setFormData(ch ? { name: ch.name, code: ch.code, owner: ch.owner, type: ch.type } : { name: '', code: '', owner: '', type: 'USSD' });
+    setIsEditing(true);
   };
 
   return (
     <div className="payments-page">
       <div className="page-header">
         <h1 className="page-title">Payment Channels</h1>
-        <button onClick={() => { setCurrentChannel(null); setIsEditing(true); }} className="btn btn-primary">
+        <button onClick={() => openEditor(null)} className="btn btn-primary">
           <Plus size={18} /> Add New Channel
         </button>
       </div>
@@ -45,8 +77,8 @@ const Payments = () => {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => { setCurrentChannel(ch); setIsEditing(true); }} className="btn" style={{ padding: '8px', background: '#f5f5f5' }}><Edit2 size={18} /></button>
-                <button className="btn" style={{ padding: '8px', background: '#f8d7da', color: '#721c24' }}><Trash2 size={18} /></button>
+                <button onClick={() => openEditor(ch)} className="btn" style={{ padding: '8px', background: '#f5f5f5' }}><Edit2 size={18} /></button>
+                <button onClick={() => handleDelete(ch.id)} className="btn" style={{ padding: '8px', background: '#f8d7da', color: '#721c24' }}><Trash2 size={18} /></button>
               </div>
             </div>
           ))}
@@ -60,19 +92,19 @@ const Payments = () => {
             <form onSubmit={handleSave}>
               <div className="form-group">
                 <label>Channel Name</label>
-                <input type="text" placeholder="Ex: Airtel Money" defaultValue={currentChannel?.name} required />
+                <input type="text" placeholder="Ex: Airtel Money" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Payment Code / Acc Number</label>
-                <input type="text" placeholder="Ex: *182*..." defaultValue={currentChannel?.code} required />
+                <input type="text" placeholder="Ex: *182*..." value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Owner Name</label>
-                <input type="text" placeholder="Ex: Christella" defaultValue={currentChannel?.owner} required />
+                <input type="text" placeholder="Ex: Christella" value={formData.owner} onChange={e => setFormData({...formData, owner: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Type</label>
-                <select defaultValue={currentChannel?.type}>
+                <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
                   <option value="USSD">USSD / Mobile</option>
                   <option value="Bank">Bank Transfer</option>
                   <option value="Link">Payment Link</option>

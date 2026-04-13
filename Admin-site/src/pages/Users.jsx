@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Mail, User, Cake, MoreVertical, Shield } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const mockUsers = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', gender: 'Boy', bday: '2023-05-15', registered: '2026-04-01' },
-    { id: '2', name: 'Alice Smith', email: 'alice@example.com', gender: 'Girl', bday: '2024-02-10', registered: '2026-04-05' },
-    { id: '3', name: 'Zura Baby', email: 'zura@example.com', gender: 'Girl', bday: '2025-11-20', registered: '2026-04-10' },
-  ];
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const usersData = [];
+      snapshot.forEach(doc => usersData.push({ id: doc.id, ...doc.data() }));
+      setUsers(usersData);
+    });
+    return () => unsub();
+  }, []);
+
+  const filteredUsers = users.filter((u) => {
+    const name = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
+    const email = (u.email || '').toLowerCase();
+    return name.includes(searchTerm.toLowerCase()) || email.includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="users-page">
@@ -38,7 +51,7 @@ const Users = () => {
             </tr>
           </thead>
           <tbody>
-            {mockUsers.map((u) => (
+            {filteredUsers.map((u) => (
               <tr key={u.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -46,21 +59,21 @@ const Users = () => {
                       width: '40px', height: '40px', borderRadius: '50%', background: '#000', color: '#fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
                     }}>
-                      {u.name.charAt(0)}
+                      {(u.firstName || 'U').charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600 }}>{u.name}</div>
+                      <div style={{ fontWeight: 600 }}>{u.firstName} {u.lastName}</div>
                       <div style={{ fontSize: '0.8rem', color: '#999' }}>{u.email}</div>
                     </div>
                   </div>
                 </td>
-                <td>{u.gender}</td>
+                <td>{u.gender || 'N/A'}</td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Cake size={14} color="#999" /> {u.bday}
+                    <Cake size={14} color="#999" /> {u.birthday || 'N/A'}
                   </div>
                 </td>
-                <td>{u.registered}</td>
+                <td>{u.registeredAt ? new Date(u.registeredAt).toLocaleDateString() : 'N/A'}</td>
                 <td>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button className="btn" style={{ padding: '6px', background: '#f5f5f5' }}><Mail size={16} /></button>

@@ -13,6 +13,8 @@ import {
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 import { TrendingUp, Users as UsersIcon, ShoppingBag, DollarSign, Calendar } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
@@ -20,6 +22,22 @@ ChartJS.register(
 
 const Dashboard = () => {
   const [dataView, setDataView] = useState('money'); // money, declined, signups
+  const [stats, setStats] = useState({ revenue: 0, orders: 0, users: 0 });
+
+  useEffect(() => {
+    const unsubOrders = onSnapshot(collection(db, 'orders'), snap => {
+      let r = 0;
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.status !== 'Declined') r += data.total || 0;
+      });
+      setStats(s => ({ ...s, orders: snap.size, revenue: r }));
+    });
+    const unsubUsers = onSnapshot(collection(db, 'users'), snap => {
+      setStats(s => ({ ...s, users: snap.size }));
+    });
+    return () => { unsubOrders(); unsubUsers(); };
+  }, []);
 
   // Mock data for graphs
   const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -76,7 +94,7 @@ const Dashboard = () => {
             <span style={{ color: 'green', fontSize: '0.8rem', fontWeight: 600 }}>+12.5%</span>
           </div>
           <p className="stat-label">Total Revenue</p>
-          <p className="stat-value">$24,560.00</p>
+          <p className="stat-value">${stats.revenue.toFixed(2)}</p>
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -84,7 +102,7 @@ const Dashboard = () => {
             <span style={{ color: 'green', fontSize: '0.8rem', fontWeight: 600 }}>+5.2%</span>
           </div>
           <p className="stat-label">Total Orders</p>
-          <p className="stat-value">1,245</p>
+          <p className="stat-value">{stats.orders}</p>
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -92,7 +110,7 @@ const Dashboard = () => {
             <span style={{ color: 'red', fontSize: '0.8rem', fontWeight: 600 }}>-2.1%</span>
           </div>
           <p className="stat-label">Total Users</p>
-          <p className="stat-value">8,342</p>
+          <p className="stat-value">{stats.users}</p>
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>

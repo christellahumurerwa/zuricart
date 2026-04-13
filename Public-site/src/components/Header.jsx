@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
@@ -47,10 +49,17 @@ const Header = () => {
       </form>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <Link to="/login" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-          <User size={20} />
-          <span className="hide-mobile">Login</span>
-        </Link>
+        {currentUser ? (
+          <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, background: 'none', border: 'none', color: '#000', cursor: 'pointer' }}>
+            <LogOut size={20} />
+            <span className="hide-mobile">Logout</span>
+          </button>
+        ) : (
+          <Link to="/login" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+            <User size={20} />
+            <span className="hide-mobile">Login</span>
+          </Link>
+        )}
         <Link to="/cart" style={{ position: 'relative' }}>
           <ShoppingCart size={22} />
           <span style={{

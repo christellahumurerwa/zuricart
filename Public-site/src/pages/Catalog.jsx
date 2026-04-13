@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { mockProducts } from '../data/mockProducts';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { Filter, X, ChevronDown, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,8 +11,8 @@ const Catalog = () => {
   const initialSearch = queryParams.get('search') || '';
   const initialCategory = queryParams.get('category') || 'All';
 
-  const [products, setProducts] = useState(mockProducts);
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   // States for filters
@@ -24,6 +25,24 @@ const Catalog = () => {
   const categories = ['All', 'Clothes', 'Shoes', 'Toys', 'Equipment', 'Pampers', 'Suitcases'];
   const ageGroups = ['All', '0-6 Months', '6-12 Months', '12-24 Months', '2+ Years', '5+ Years'];
   const colors = ['All', 'White', 'Black', 'Natural', 'Grey', 'Pink', 'Blue'];
+
+  // Fetch products from Firestore
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'products'));
+        const productsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setProducts(productsData);
+        setFilteredProducts(productsData);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     let result = products;
@@ -164,7 +183,7 @@ const Catalog = () => {
                 key={product.id} 
                 className="product-card"
               >
-                <div style={{ position: 'relative', overflow: 'hidden' }}>
+                <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden', display: 'block' }}>
                   <img src={product.image} alt={product.name} className="product-image" />
                   <div style={{
                     position: 'absolute',
@@ -178,7 +197,7 @@ const Catalog = () => {
                   }}>
                     <ShoppingBag size={18} />
                   </div>
-                </div>
+                </Link>
                 <div className="product-info">
                   <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#999', fontWeight: 600 }}>{product.category}</span>
                   <h3 className="product-name">{product.name}</h3>

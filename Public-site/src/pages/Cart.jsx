@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Minus, MapPin, Phone, MessageSquare, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Trash2, Plus, Minus, MapPin, Phone, MessageSquare, CreditCard, Mail } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
 const Cart = () => {
@@ -9,6 +13,9 @@ const Cart = () => {
     { id: '2', name: 'Soft Leather Shoes', price: 35.0, quantity: 1, image: '/images/hero2.png' }
   ]);
 
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  
   const [checkoutData, setCheckoutData] = useState({
     location: '',
     phone: '',
@@ -29,15 +36,42 @@ const Cart = () => {
   const deliveryFee = 5.0;
   const total = subtotal + deliveryFee;
 
-  const handleCheckout = (e) => {
+  const handleCheckout = async (e) => {
     e.preventDefault();
-    const orderDetails = cartItems.map(item => `${item.name} (x${item.quantity}) - $${item.price * item.quantity}`).join('\n');
-    const message = `New Order from ZURI CART:\n\nItems:\n${orderDetails}\n\nTotal: $${total}\nLocation: ${checkoutData.location}\nPhone: ${checkoutData.phone}\n\nPayment: Momo (*182*8*1*2054917# - Christella)`;
+    if (!currentUser) {
+      alert("Please login or sign up to place an order.");
+      navigate('/login');
+      return;
+    }
 
-    if (checkoutData.contactChannel === 'Whatsapp') {
-      window.open(`https://wa.me/250792876203?text=${encodeURIComponent(message)}`, '_blank');
-    } else {
-      window.location.href = `mailto:christellahumurerwa5@gmail.com?subject=New Order from ZURI CART&body=${encodeURIComponent(message)}`;
+    try {
+      // Save order to Firestore
+      await addDoc(collection(db, 'orders'), {
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
+        total: total,
+        location: checkoutData.location,
+        phone: checkoutData.phone,
+        contactChannel: checkoutData.contactChannel,
+        status: 'Pending',
+        createdAt: new Date().toISOString()
+      });
+
+      // Clear cart logic here (Normally you'd wipe the context state)
+      setCartItems([]);
+
+      const orderDetails = cartItems.map(item => `${item.name} (x${item.quantity}) - $${item.price * item.quantity}`).join('\n');
+      const message = `New Order from ZURI CART:\n\nItems:\n${orderDetails}\n\nTotal: $${total}\nLocation: ${checkoutData.location}\nPhone: ${checkoutData.phone}\n\nPayment: Momo (*182*8*1*2054917# - Christella)`;
+
+      if (checkoutData.contactChannel === 'Whatsapp') {
+        window.open(`https://wa.me/250792876203?text=${encodeURIComponent(message)}`, '_blank');
+      } else {
+        window.location.href = `mailto:christellahumurerwa5@gmail.com?subject=New Order from ZURI CART&body=${encodeURIComponent(message)}`;
+      }
+    } catch (err) {
+      console.error("Error creating order: ", err);
+      alert("Failed to submit order.");
     }
   };
 
