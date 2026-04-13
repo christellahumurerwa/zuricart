@@ -7,6 +7,7 @@ import Stock from './pages/Stock';
 import Users from './pages/Users';
 import Payments from './pages/Payments';
 import Auth from './pages/Auth';
+import Settings from './pages/Settings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './index.css';
 
@@ -35,6 +36,7 @@ function App() {
                     <Route path="/stock" element={<Stock />} />
                     <Route path="/users" element={<Users />} />
                     <Route path="/payments" element={<Payments />} />
+                    <Route path="/settings" element={<Settings />} />
                   </Routes>
                 </main>
               </div>

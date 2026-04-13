@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, LogOut } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [navLinks, setNavLinks] = useState([
+    { label: 'Home', url: '/' },
+    { label: 'All Categories', url: '/catalog' },
+  ]);
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Load custom nav links from Firestore settings
+  useEffect(() => {
+    const loadNav = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'siteSettings', 'config'));
+        if (snap.exists() && snap.data().navLinks) {
+          setNavLinks(snap.data().navLinks);
+        }
+      } catch (err) {
+        // Silently fall back to defaults
+      }
+    };
+    loadNav();
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -48,10 +69,18 @@ const Header = () => {
         <Search size={18} style={{ position: 'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
       </form>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <Link to="/" style={{ fontWeight: 500, color: '#000', textDecoration: 'none' }} className="hide-mobile">
-          Home
-        </Link>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        {/* Dynamic nav links from Firestore / defaults */}
+        {navLinks.map((link, i) => (
+          <Link
+            key={i}
+            to={link.url}
+            style={{ fontWeight: 500, color: '#000', textDecoration: 'none', whiteSpace: 'nowrap' }}
+            className="hide-mobile"
+          >
+            {link.label}
+          </Link>
+        ))}
         {currentUser ? (
           <button onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, background: 'none', border: 'none', color: '#000', cursor: 'pointer' }}>
             <LogOut size={20} />
