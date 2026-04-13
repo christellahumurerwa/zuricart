@@ -5,11 +5,13 @@ import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Cart = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { formatPrice, currency, rate, symbol } = useCurrency();
 
   const [checkoutData, setCheckoutData] = useState({
     location: '',
@@ -45,7 +47,8 @@ const Cart = () => {
       });
 
       const orderDetails = cartItems.map(item => `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`).join('\n');
-      const message = `New Order from ZURI CART:\n\nItems:\n${orderDetails}\n\nTotal: $${total.toFixed(2)}\nLocation: ${checkoutData.location}\nPhone: ${checkoutData.phone}\n\nPayment: Momo (*182*8*1*2054917# - Christella)`;
+      const localTotal = formatPrice(total);
+      const message = `New Order from ZURI CART:\n\nItems:\n${orderDetails}\n\nTotal (USD): $${total.toFixed(2)}\nTotal (${currency}): ${localTotal}\n\nLocation: ${checkoutData.location}\nPhone: ${checkoutData.phone}\n\nPayment: Momo (*182*8*1*2054917# - Christella)`;
 
       clearCart();
       setOrderPlaced(true);
@@ -102,7 +105,7 @@ const Cart = () => {
                   <div>
                     <h3 style={{ fontWeight: 600, marginBottom: '4px', fontSize: '1rem' }}>{item.name}</h3>
                     <p style={{ color: '#999', fontSize: '0.9rem' }}>{item.category}</p>
-                    <p style={{ fontWeight: 700, marginTop: '6px' }}>${item.price.toFixed(2)}</p>
+                    <p style={{ fontWeight: 700, marginTop: '6px' }}>{formatPrice(item.price)}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f5f5f5', padding: '8px 15px', borderRadius: '25px' }}>
                     <Minus size={14} style={{ cursor: 'pointer' }} onClick={() => updateQuantity(item.id, -1)} />
@@ -110,7 +113,7 @@ const Cart = () => {
                     <Plus size={14} style={{ cursor: 'pointer' }} onClick={() => updateQuantity(item.id, 1)} />
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontWeight: 800, marginBottom: '10px' }}>${(item.price * item.quantity).toFixed(2)}</p>
+                    <p style={{ fontWeight: 800, marginBottom: '10px' }}>{formatPrice(item.price * item.quantity)}</p>
                     <Trash2 size={16} color="#ff4d4f" style={{ cursor: 'pointer' }} onClick={() => removeFromCart(item.id)} />
                   </div>
                 </div>
@@ -125,15 +128,18 @@ const Cart = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#666' }}>Subtotal ({cartItems.reduce((acc, i) => acc + i.quantity, 0)} items)</span>
-                <span style={{ fontWeight: 700 }}>${subtotal.toFixed(2)}</span>
+                <span style={{ fontWeight: 700 }}>{formatPrice(subtotal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#666' }}>Delivery</span>
-                <span style={{ fontWeight: 700 }}>${deliveryFee.toFixed(2)}</span>
+                <span style={{ fontWeight: 700 }}>{formatPrice(deliveryFee)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>
                 <span style={{ fontWeight: 800 }}>Total</span>
-                <span style={{ fontWeight: 800 }}>${total.toFixed(2)}</span>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 800 }}>{formatPrice(total)}</div>
+                  {currency !== 'USD' && <div style={{ fontSize: '0.8rem', color: '#999', fontWeight: 500 }}>≈ ${total.toFixed(2)} USD</div>}
+                </div>
               </div>
             </div>
 

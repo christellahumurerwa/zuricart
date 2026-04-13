@@ -9,12 +9,14 @@ import Cart from './pages/Cart';
 import Auth from './pages/Auth';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import './index.css';
 
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
+      <CurrencyProvider>
+        <CartProvider>
         <Router>
           <div className="app-container">
             <Header />
@@ -33,8 +35,9 @@ function App() {
           </div>
         </Router>
       </CartProvider>
-    </AuthProvider>
-  );
+    </CurrencyProvider>
+  </AuthProvider>
+);
 }
 
 export default App;

@@ -5,6 +5,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { Filter, X, ChevronDown, ShoppingBag, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Catalog = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const Catalog = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [addedIds, setAddedIds] = useState({});
   const { addToCart } = useCart();
+  const { formatPrice, currency } = useCurrency();
   
   // States for filters
   const [search, setSearch] = useState(initialSearch);
@@ -132,8 +134,8 @@ const Catalog = () => {
               style={{ width: '100%', accentColor: '#000' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
-              <span>$0</span>
-              <span>${priceRange[1]}</span>
+              <span>{formatPrice(0)}</span>
+              <span>{formatPrice(priceRange[1])}</span>
             </div>
           </div>
 
@@ -215,7 +217,7 @@ const Catalog = () => {
                 <div className="product-info">
                   <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#999', fontWeight: 600 }}>{product.category}</span>
                   <h3 className="product-name">{product.name}</h3>
-                  <p className="product-price">${product.price.toFixed(2)}</p>
+                  <p className="product-price">{formatPrice(product.price)}</p>
                 </div>
               </motion.div>
             ))}

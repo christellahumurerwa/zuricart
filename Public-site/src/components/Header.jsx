@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
+import CurrencySelector from './CurrencySelector';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -16,6 +18,7 @@ const Header = () => {
   const [logoUrl, setLogoUrl] = useState('');
   const { currentUser, logout } = useAuth();
   const { cartCount } = useCart();
+  const { isLoading: currencyLoading } = useCurrency();
   const navigate = useNavigate();
 
   // Load custom nav links from Firestore settings
@@ -77,6 +80,7 @@ const Header = () => {
       </form>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <CurrencySelector />
         {/* Dynamic nav links from Firestore / defaults */}
         {navLinks.map((link, i) => (
           <Link

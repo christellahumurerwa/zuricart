@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { ChevronLeft, ShoppingCart, ShieldCheck, Truck, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -11,6 +12,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,7 +52,7 @@ const ProductDetail = () => {
         <div>
           <span style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: '#999', fontWeight: 700, letterSpacing: '2px' }}>{product.category}</span>
           <h1 style={{ fontSize: '3rem', fontWeight: 800, margin: '1rem 0' }}>{product.name}</h1>
-          <p style={{ fontSize: '1.8rem', fontWeight: 800 }}>${product.price.toFixed(2)}</p>
+          <p style={{ fontSize: '1.8rem', fontWeight: 800 }}>{formatPrice(product.price)}</p>
         </div>
 
         <p style={{ color: '#666', fontSize: '1.1rem', lineHeight: 1.8 }}>
