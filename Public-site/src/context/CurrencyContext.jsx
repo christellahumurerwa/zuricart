@@ -16,9 +16,14 @@ export const CurrencyProvider = ({ children }) => {
   const fetchExchangeRate = async (targetCurrency) => {
     try {
       if (targetCurrency === 'USD') return 1;
-      const res = await fetch(`https://api.frankfurter.app/latest?from=USD&to=${targetCurrency}`);
+      // Using open.er-api.com for better coverage of African currencies (RWF, KES, etc.)
+      const res = await fetch(`https://open.er-api.com/v6/latest/USD`);
       const data = await res.json();
-      return data.rates[targetCurrency] || 1;
+      if (data.result === 'success') {
+        const newRate = data.rates[targetCurrency] || 1;
+        return newRate;
+      }
+      return 1;
     } catch (err) {
       console.error('Exchange rate fetch failed:', err);
       return 1;
@@ -42,8 +47,7 @@ export const CurrencyProvider = ({ children }) => {
     }
 
     try {
-      // 1. Detect Location/Currency via IP (Seamless, no prompt)
-      // Note: Replaced with fallback detection if API fails
+      // 1. Detect Location/Currency via IP
       const geoRes = await fetch('https://ipapi.co/json/');
       const geoData = await geoRes.json();
       const detectedCurrency = geoData.currency || 'USD';
@@ -86,6 +90,7 @@ export const CurrencyProvider = ({ children }) => {
   const changeCurrency = async (newCode) => {
     setIsLoading(true);
     const newRate = await fetchExchangeRate(newCode);
+    
     const newSymbol = new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency: newCode,
@@ -109,7 +114,6 @@ export const CurrencyProvider = ({ children }) => {
     if (!usdAmount && usdAmount !== 0) return '';
     const converted = usdAmount * rate;
     
-    // Special formatting for RWF (no decimals usually)
     if (currency === 'RWF') {
       return `${Math.round(converted).toLocaleString()} ${symbol}`;
     }

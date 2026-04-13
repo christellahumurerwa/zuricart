@@ -11,34 +11,41 @@ const CURRENCIES = [
 ];
 
 const CurrencySelector = () => {
-  const { currency, changeCurrency, isLoading } = useCurrency();
+  const { currency, changeCurrency, isLoading, rate } = useCurrency();
 
   return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-      <select 
-        value={currency} 
-        onChange={(e) => changeCurrency(e.target.value)}
-        disabled={isLoading}
-        style={{
-          background: '#f5f5f5',
-          border: '1px solid #eee',
-          borderRadius: '20px',
-          padding: '4px 12px',
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          outline: 'none',
-          appearance: 'none',
-          textAlign: 'center'
-        }}
-      >
-        {CURRENCIES.map(c => (
-          <option key={c.code} value={c.code}>
-            {c.code} {c.symbol}
-          </option>
-        ))}
-      </select>
-      {isLoading && <span style={{ marginLeft: '8px', fontSize: '0.7rem', color: '#999' }}>...</span>}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <select 
+          value={currency} 
+          onChange={(e) => changeCurrency(e.target.value)}
+          disabled={isLoading}
+          style={{
+            background: '#f5f5f5',
+            border: '1px solid #eee',
+            borderRadius: '20px',
+            padding: '4px 12px',
+            fontSize: '0.8rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            outline: 'none',
+            appearance: 'none',
+            textAlign: 'center'
+          }}
+        >
+          {CURRENCIES.map(c => (
+            <option key={c.code} value={c.code}>
+              {c.code} {c.symbol}
+            </option>
+          ))}
+        </select>
+        {isLoading && <span style={{ marginLeft: '8px', fontSize: '0.7rem', color: '#999' }}>...</span>}
+      </div>
+      {!isLoading && currency !== 'USD' && (
+        <span style={{ fontSize: '0.65rem', color: '#999', fontWeight: 500, letterSpacing: '0.5px' }}>
+          1 USD ≈ {rate.toLocaleString()} {currency}
+        </span>
+      )}
     </div>
   );
 };
