@@ -8,6 +8,7 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
@@ -93,7 +94,7 @@ const Orders = () => {
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn" style={{ padding: '6px', background: '#f5f5f5' }} title="View Details"><Eye size={16} /></button>
+                    <button onClick={() => setSelectedOrder(order)} className="btn" style={{ padding: '6px', background: '#f5f5f5' }} title="View Details"><Eye size={16} /></button>
                     {order.status.toLowerCase() === 'pending' && (
                       <>
                         <button onClick={() => updateStatus(order.id, 'Completed')} className="btn" style={{ padding: '6px', background: '#d4edda', color: '#155724' }} title="Mark Completed"><CheckCircle size={16} /></button>
@@ -110,6 +111,57 @@ const Orders = () => {
           <div style={{ padding: '3rem', textAlign: 'center', color: '#999' }}>No orders found.</div>
         )}
       </div>
+
+      {selectedOrder && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0 }}>Order Details</h2>
+              <button onClick={() => setSelectedOrder(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><XCircle size={24} color="#999" /></button>
+            </div>
+            <div style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
+              <p style={{ margin: '4px 0' }}><strong>Order ID:</strong> {selectedOrder.id}</p>
+              <p style={{ margin: '4px 0' }}><strong>Customer:</strong> {selectedOrder.userEmail}</p>
+              <p style={{ margin: '4px 0' }}><strong>Phone:</strong> {selectedOrder.phone}</p>
+              <p style={{ margin: '4px 0' }}><strong>Location:</strong> {selectedOrder.location}</p>
+              <p style={{ margin: '4px 0' }}><strong>Status:</strong> {selectedOrder.status}</p>
+              <p style={{ margin: '4px 0' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+            </div>
+            <h3 style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>Items</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem' }}>
+              <thead>
+                <tr style={{ background: '#f9f9f9', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 8px', borderBottom: '2px solid #ddd' }}>Item</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '2px solid #ddd' }}>Price</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '2px solid #ddd' }}>Qty</th>
+                  <th style={{ padding: '10px 8px', borderBottom: '2px solid #ddd' }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedOrder.items && selectedOrder.items.map((item, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #eee' }}>{item.name}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #eee' }}>${item.price.toFixed(2)}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #eee' }}>{item.quantity}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #eee' }}>${(item.price * item.quantity).toFixed(2)}</td>
+                  </tr>
+                ))}
+                {(!selectedOrder.items || selectedOrder.items.length === 0) && (
+                  <tr>
+                    <td colSpan="4" style={{ padding: '10px 8px', textAlign: 'center', color: '#999' }}>No items found for this order.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <div style={{ textAlign: 'right', marginTop: '1rem', fontSize: '1.2rem', fontWeight: 'bold', paddingTop: '1rem', borderTop: '2px solid #eee' }}>
+              Total: ${selectedOrder.total.toFixed(2)}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
